@@ -15,8 +15,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /build
 
 # Clone the specific release tag (shallow clone for speed)
-RUN git clone --depth 1 --branch ${ELEMENT_WEB_VERSION} \
-        https://github.com/element-hq/element-web.git .
+RUN git clone --depth 1 --branch ${ELEMENT_WEB_VERSION} https://github.com/element-hq/element-web.git .
 
 # Install dependencies and build
 # Element uses npm; the build produces static files in webapp/
