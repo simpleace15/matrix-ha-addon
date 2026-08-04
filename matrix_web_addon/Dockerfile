@@ -1,10 +1,12 @@
+# Global ARGs must be declared before any FROM to be available
+# in all build stages. HA Supervisor overrides BUILD_FROM at build time.
+ARG BUILD_FROM=ghcr.io/home-assistant/base:3.24
+ARG ELEMENT_WEB_VERSION=v1.12.24
+
 # ──────────────────────────────────────────────
 # Stage 1: Build Element Web from source
 # ──────────────────────────────────────────────
 FROM node:20-bookworm AS builder
-
-# Pin to latest stable release tag
-ARG ELEMENT_WEB_VERSION=v1.12.24
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
@@ -24,7 +26,6 @@ RUN npm run build
 # ──────────────────────────────────────────────
 # Stage 2: Runtime — HA base image with nginx
 # ──────────────────────────────────────────────
-ARG BUILD_FROM=ghcr.io/home-assistant/base:3.24
 FROM ${BUILD_FROM}
 
 # Install nginx and jq (jq already in base image, but ensure it's present)
