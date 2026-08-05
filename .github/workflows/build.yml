@@ -12,6 +12,11 @@ on:
       - 'matrix_web_addon/**'
       - '.github/workflows/build.yml'
 
+env:
+  ARCHITECTURES: '["amd64", "aarch64"]'
+  IMAGE_NAME: matrix-web-addon
+  REGISTRY_PREFIX: ghcr.io/simpleace15
+
 permissions:
   contents: read
 
@@ -20,35 +25,25 @@ jobs:
     name: Initialize build
     runs-on: ubuntu-latest
     outputs:
-      architectures: ${{ steps.info.outputs.architectures }}
-      build_matrix: ${{ steps.matrix.outputs.matrix }}
-      image_name: ${{ steps.normalize.outputs.image_name }}
-      registry_prefix: ${{ steps.normalize.outputs.registry_prefix }}
-      version: ${{ steps.normalize.outputs.version }}
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Get addon information
-        id: info
-        uses: home-assistant/actions/helpers/info@master
-        with:
-          path: ./matrix_web_addon
-
-      - name: Normalize addon information
-        id: normalize
+      - name: Extract addon version from config.yaml
+        id: version
         run: |
-          image="${{ steps.info.outputs.image }}"
-          echo "image_name=${image##*/}" >> "$GITHUB_OUTPUT"
-          echo "registry_prefix=${image%/*}" >> "$GITHUB_OUTPUT"
-          echo "version=${{ steps.info.outputs.version }}" >> "$GITHUB_OUTPUT"
+          VERSION=$(grep '^version:' matrix_web_addon/config.yaml | sed 's/version: *"\(.*\)"/\1/')
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Addon version: ${VERSION}"
 
       - name: Prepare build matrix
         id: matrix
         uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
         with:
-          architectures: ${{ steps.info.outputs.architectures }}
-          image-name: ${{ steps.normalize.outputs.image_name }}
-          registry-prefix: ${{ steps.normalize.outputs.registry_prefix }}
+          architectures: ${{ env.ARCHITECTURES }}
+          image-name: ${{ env.IMAGE_NAME }}
+          registry-prefix: ${{ env.REGISTRY_PREFIX }}
 
   build:
     name: Build ${{ matrix.arch }} image
@@ -60,7 +55,7 @@ jobs:
       packages: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.init.outputs.build_matrix) }}
+      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -94,10 +89,10 @@ jobs:
       - name: Publish multi-arch manifest
         uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
         with:
-          architectures: ${{ needs.init.outputs.architectures }}
+          architectures: ${{ env.ARCHITECTURES }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          image-name: ${{ needs.init.outputs.image_name }}
-          registry-prefix: ${{ needs.init.outputs.registry_prefix }}
+          image-name: ${{ env.IMAGE_NAME }}
+          registry-prefix: ${{ env.REGISTRY_PREFIX }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
