@@ -22,8 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.matrix.outputs.matrix }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Extract addon version
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' matrix_web_addon/config.yaml)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Addon version: ${VERSION}"
 
       - name: Get build matrix
         id: matrix
@@ -53,7 +61,8 @@ jobs:
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           image: ${{ matrix.image }}
           image-tags: |
-            ${{ github.event_name == 'release' && github.event.release.tag_name || 'latest' }}
+            ${{ needs.init.outputs.version }}
+            latest
           push: "true"
           # Element Web version passed as Docker build arg
           build-args: |
@@ -81,4 +90,5 @@ jobs:
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
           image-name: ${{ env.IMAGE_NAME }}
           image-tags: |
-            ${{ github.event_name == 'release' && github.event.release.tag_name || 'latest' }}
+            ${{ needs.init.outputs.version }}
+            latest
