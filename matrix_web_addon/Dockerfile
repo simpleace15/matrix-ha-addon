@@ -8,16 +8,19 @@ ARG ELEMENT_WEB_VERSION=v1.12.24
 # ──────────────────────────────────────────────
 FROM node:20-bookworm AS builder
 
-# Redeclare ARG inside this stage so it's available in RUN commands
+# Redeclare ARG inside this stage so it's available in ADD/RUN
 # (Docker scopes ARGs per-stage — global ARGs only work in FROM lines)
 ARG ELEMENT_WEB_VERSION
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        git \
-    && rm -rf /var/lib/apt/lists/*
+# Download source tarball via Docker's ADD (uses BuildKit's HTTP client
+# with host networking, not container DNS — avoids "Could not resolve host")
+ADD https://github.com/element-hq/element-web/archive/refs/tags/${ELEMENT_WEB_VERSION}.tar.gz /tmp/element-web.tar.gz
 
-# Clone the specific release tag (shallow clone for speed)
-RUN git clone --depth 1 --branch ${ELEMENT_WEB_VERSION} https://github.com/element-hq/element-web.git /build/element-web
+# Extract the tarball
+RUN mkdir -p /build && \
+    tar xzf /tmp/element-web.tar.gz -C /build && \
+    mv /build/element-web-* /build/element-web && \
+    rm /tmp/element-web.tar.gz
 
 WORKDIR /build/element-web
 
