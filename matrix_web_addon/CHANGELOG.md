@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to date-based versioning (`YYYY.MM.DD`).
 
+## [2026.08.07] - 2026-08-07
+
+### Fixed
+- Bypass Element Web's mobile redirect — HA Companion app sends a mobile user agent which triggered Element's "desktop site not available on mobile" redirect. nginx `sub_filter` injects a cookie (`element_mobile_redirect_to_guide=false`) into `index.html` before Element's JS runs, preventing the redirect.
+
 ## [2026.08.06] - 2026-08-06
 
 ### Changed
