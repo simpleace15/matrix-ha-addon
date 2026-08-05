@@ -12,10 +12,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /build
-
 # Clone the specific release tag (shallow clone for speed)
-RUN git clone --depth 1 --branch ${ELEMENT_WEB_VERSION} https://github.com/element-hq/element-web.git .
+RUN git clone --depth 1 --branch ${ELEMENT_WEB_VERSION} https://github.com/element-hq/element-web.git /build/element-web
+
+WORKDIR /build/element-web
 
 # Install dependencies and build
 # Element uses npm; the build produces static files in webapp/
@@ -37,7 +37,7 @@ RUN \
 WORKDIR /app
 
 # Copy built static files from the builder stage
-COPY --from=builder /build/webapp /app/webapp
+COPY --from=builder /build/element-web/webapp /app/webapp
 
 # Copy pre-baked config.json into the webapp directory (overrides default)
 COPY config.json /app/webapp/config.json
