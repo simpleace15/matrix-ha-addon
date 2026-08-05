@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'matrix_web_addon/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'matrix_web_addon/**'
+      - 'tests/**'
+      - '.github/workflows/ci.yml'
+
+jobs:
+  test:
+    name: Validate Addon
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          pip install pyyaml
+
+      - name: Make tests executable
+        run: chmod +x tests/*.sh
+
+      - name: Run test suite
+        run: ./tests/run_tests.sh --verbose
