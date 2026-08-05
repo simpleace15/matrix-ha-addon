@@ -1,5 +1,5 @@
 # Global ARGs must be declared before any FROM to be available
-# in all build stages. HA Supervisor overrides BUILD_FROM at build time.
+# in FROM directives. HA Supervisor passes BUILD_FROM, BUILD_ARCH, BUILD_VERSION.
 ARG BUILD_FROM=ghcr.io/home-assistant/base:3.24
 ARG ELEMENT_WEB_VERSION=v1.12.24
 
@@ -7,6 +7,10 @@ ARG ELEMENT_WEB_VERSION=v1.12.24
 # Stage 1: Build Element Web from source
 # ──────────────────────────────────────────────
 FROM node:20-bookworm AS builder
+
+# Redeclare ARG inside this stage so it's available in RUN commands
+# (Docker scopes ARGs per-stage — global ARGs only work in FROM lines)
+ARG ELEMENT_WEB_VERSION
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
@@ -27,7 +31,7 @@ RUN npm run build
 # ──────────────────────────────────────────────
 FROM ${BUILD_FROM}
 
-# Install nginx and jq (jq already in base image, but ensure it's present)
+# Install nginx and jq
 RUN \
     apk add --no-cache \
         nginx \
