@@ -55,12 +55,16 @@ jobs:
           image-tags: |
             ${{ github.event_name == 'release' && github.event.release.tag_name || 'latest' }}
           push: "true"
-          # Pass Element Web version as build context
+          # Element Web version passed as Docker build arg
           build-args: |
             ELEMENT_WEB_VERSION=v1.12.24
-          # Build context is the addon directory
+          # Build context is the addon directory (where Dockerfile lives)
           context: ${{ github.workspace }}/matrix_web_addon
-          dockerfile: ${{ github.workspace }}/matrix_web_addon/Dockerfile
+          file: ${{ github.workspace }}/matrix_web_addon/Dockerfile
+          # Disable cosign signing (we don't need signed images for a personal addon)
+          cosign: "false"
+          # Don't verify base image signature (our base images aren't cosign-signed)
+          cosign-base-verify: "false"
 
   manifest:
     name: Publish multi-arch manifest

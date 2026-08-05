@@ -5,15 +5,16 @@ ARG ELEMENT_WEB_VERSION=v1.12.24
 
 # ──────────────────────────────────────────────
 # Stage 1: Build Element Web from source
+# Element Web v1.12.24 is a pnpm monorepo requiring Node >=22.18 and pnpm 11.x
 # ──────────────────────────────────────────────
-FROM node:20-bookworm AS builder
+FROM node:24-bookworm AS builder
 
-# Redeclare ARG inside this stage so it's available in ADD/RUN
-# (Docker scopes ARGs per-stage — global ARGs only work in FROM lines)
+# Install pnpm 11.x (Element Web pins pnpm 11.5.2)
+RUN npm install -g pnpm@11.5.2
+
 ARG ELEMENT_WEB_VERSION
 
-# Download source tarball via Docker's ADD (uses BuildKit's HTTP client
-# with host networking, not container DNS — avoids "Could not resolve host")
+# Download source tarball
 ADD https://github.com/element-hq/element-web/archive/refs/tags/${ELEMENT_WEB_VERSION}.tar.gz /tmp/element-web.tar.gz
 
 # Extract the tarball
@@ -24,10 +25,14 @@ RUN mkdir -p /build && \
 
 WORKDIR /build/element-web
 
-# Install dependencies and build
-# Element uses npm; the build produces static files in webapp/
-RUN npm install --legacy-peer-deps
-RUN npm run build
+# Install dependencies using pnpm (frozen lockfile ensures reproducible builds)
+RUN pnpm install --frozen-lockfile
+
+# Build Element Web — produces static files in apps/web/webapp/
+RUN pnpm --dir apps/web build
+
+# Copy default config into the built webapp directory
+RUN cp apps/web/config.sample.json apps/web/webapp/config.json
 
 # ──────────────────────────────────────────────
 # Stage 2: Runtime — HA base image with nginx
@@ -44,7 +49,7 @@ RUN \
 WORKDIR /app
 
 # Copy built static files from the builder stage
-COPY --from=builder /build/element-web/webapp /app/webapp
+COPY --from=builder /build/element-web/apps/web/webapp /app/webapp
 
 # Copy pre-baked config.json into the webapp directory (overrides default)
 COPY config.json /app/webapp/config.json
