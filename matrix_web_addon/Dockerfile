@@ -62,7 +62,6 @@ COPY run.sh /
 RUN chmod a+x /run.sh
 
 LABEL \
-    io.hass.version="2026.08.05" \
     io.hass.type="app" \
     io.hass.arch="amd64,aarch64"
 

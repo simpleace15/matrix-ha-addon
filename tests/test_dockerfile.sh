@@ -120,7 +120,7 @@ else
 fi
 
 # ── 9. HA labels present ──
-for label in io.hass.version io.hass.type io.hass.arch; do
+for label in io.hass.type io.hass.arch; do
     if grep -q "$label" "$DOCKERFILE"; then
         pass "Label $label present"
     else

@@ -1,9 +1,9 @@
 name: Matrix Web Chat
-version: "2026.08.05"
+version: "2026.08.06"
 slug: matrix_web_addon
 description: Self-hosted Element Web Matrix chat client for Home Assistant
 url: "https://github.com/simpleace15/matrix-ha-addon"
-image: ghcr.io/simpleace15/{arch}-matrix-web-addon
+image: ghcr.io/simpleace15/matrix-web-addon
 arch:
   - amd64
   - aarch64

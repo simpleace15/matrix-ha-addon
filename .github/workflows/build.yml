@@ -6,12 +6,11 @@ on:
     paths:
       - 'matrix_web_addon/**'
       - '.github/workflows/build.yml'
-  release:
-    types: [published]
-
-env:
-  ARCHITECTURES: '["amd64", "aarch64"]'
-  IMAGE_NAME: matrix-web-addon
+  pull_request:
+    branches: [main]
+    paths:
+      - 'matrix_web_addon/**'
+      - '.github/workflows/build.yml'
 
 permissions:
   contents: read
@@ -21,24 +20,35 @@ jobs:
     name: Initialize build
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.matrix.outputs.matrix }}
-      version: ${{ steps.version.outputs.version }}
+      architectures: ${{ steps.info.outputs.architectures }}
+      build_matrix: ${{ steps.matrix.outputs.matrix }}
+      image_name: ${{ steps.normalize.outputs.image_name }}
+      registry_prefix: ${{ steps.normalize.outputs.registry_prefix }}
+      version: ${{ steps.normalize.outputs.version }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Extract addon version
-        id: version
-        run: |
-          VERSION=$(grep '^version:' matrix_web_addon/config.yaml | sed 's/version: *"\(.*\)"/\1/')
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Addon version: ${VERSION}"
+      - name: Get addon information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: ./matrix_web_addon
 
-      - name: Get build matrix
+      - name: Normalize addon information
+        id: normalize
+        run: |
+          image="${{ steps.info.outputs.image }}"
+          echo "image_name=${image##*/}" >> "$GITHUB_OUTPUT"
+          echo "registry_prefix=${image%/*}" >> "$GITHUB_OUTPUT"
+          echo "version=${{ steps.info.outputs.version }}" >> "$GITHUB_OUTPUT"
+
+      - name: Prepare build matrix
         id: matrix
         uses: home-assistant/builder/actions/prepare-multi-arch-matrix@2026.06.0
         with:
-          architectures: ${{ env.ARCHITECTURES }}
-          image-name: ${{ env.IMAGE_NAME }}
+          architectures: ${{ steps.info.outputs.architectures }}
+          image-name: ${{ steps.normalize.outputs.image_name }}
+          registry-prefix: ${{ steps.normalize.outputs.registry_prefix }}
 
   build:
     name: Build ${{ matrix.arch }} image
@@ -50,7 +60,7 @@ jobs:
       packages: write
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.init.outputs.matrix) }}
+      matrix: ${{ fromJSON(needs.init.outputs.build_matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -59,25 +69,23 @@ jobs:
         with:
           arch: ${{ matrix.arch }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
+          context: ${{ github.workspace }}/matrix_web_addon
+          file: ${{ github.workspace }}/matrix_web_addon/Dockerfile
           image: ${{ matrix.image }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
-          push: "true"
-          # Element Web version passed as Docker build arg
+          push: ${{ github.event_name == 'push' }}
+          version: ${{ needs.init.outputs.version }}
           build-args: |
             ELEMENT_WEB_VERSION=v1.12.24
-          # Build context is the addon directory (where Dockerfile lives)
-          context: ${{ github.workspace }}/matrix_web_addon
-          file: ${{ github.workspace }}/matrix_web_addon/Dockerfile
-          # Disable cosign signing (we don't need signed images for a personal addon)
           cosign: "false"
-          # Don't verify base image signature (our base images aren't cosign-signed)
           cosign-base-verify: "false"
 
   manifest:
     name: Publish multi-arch manifest
     needs: [init, build]
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -86,9 +94,10 @@ jobs:
       - name: Publish multi-arch manifest
         uses: home-assistant/builder/actions/publish-multi-arch-manifest@2026.06.0
         with:
-          architectures: ${{ env.ARCHITECTURES }}
+          architectures: ${{ needs.init.outputs.architectures }}
           container-registry-password: ${{ secrets.GITHUB_TOKEN }}
-          image-name: ${{ env.IMAGE_NAME }}
+          image-name: ${{ needs.init.outputs.image_name }}
+          registry-prefix: ${{ needs.init.outputs.registry_prefix }}
           image-tags: |
             ${{ needs.init.outputs.version }}
             latest
