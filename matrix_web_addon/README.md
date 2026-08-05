@@ -25,7 +25,7 @@
 - **Thread support** — first-class threads (MSC3440) enabled by default, the key reason we chose Element Web
 - **End-to-end encryption** — full E2EE via Olm (WebAssembly), works entirely in the browser under HA's HTTPS
 - **Multi-user** — each person logs in with their own Matrix account; sessions are isolated per browser/device
-- **Pre-configured** — locked to our homeserver (`matrix.dogzilla.cloud`) out of the box, zero config needed
+- **Pre-configured** — locked to our homeserver (`matrix.example.com`) out of the box, zero config needed
 - **Dark theme by default** — matches HA's dark mode aesthetic
 - **Configurable** — homeserver URL, server name, and brand can be overridden via HA add-on options
 
@@ -36,7 +36,7 @@
 ### Prerequisites
 
 1. **Home Assistant** with add-on support (HA OS, Supervised, or Container + addon manager)
-2. A **Matrix account** on a homeserver (e.g. `matrix.dogzilla.cloud`)
+2. A **Matrix account** on a homeserver (e.g. `matrix.example.com`)
 
 ### Install the Add-on
 
@@ -50,7 +50,7 @@ That's it. The add-on appears in your HA sidebar as **Matrix Chat** 💬
 ### Log In
 
 1. Click **Matrix Chat** in your HA sidebar
-2. The Element Web login screen appears, pre-configured to `matrix.dogzilla.cloud`
+2. The Element Web login screen appears, pre-configured to `matrix.example.com`
 3. Enter your Matrix username and password
 4. You're in — your rooms, threads, and DMs are all there
 
@@ -62,9 +62,9 @@ That's it. The add-on appears in your HA sidebar as **Matrix Chat** 💬
 
 | Option | Required | Default | Description |
 |--------|----------|---------|-------------|
-| `homeserver_url` | no | `https://matrix.dogzilla.cloud` | URL of your Matrix homeserver |
-| `homeserver_name` | no | `matrix.dogzilla.cloud` | Display name of the homeserver |
-| `server_name` | no | `matrix.dogzilla.cloud` | Matrix server name (used for room directory) |
+| `homeserver_url` | no | `https://matrix.example.com` | URL of your Matrix homeserver |
+| `homeserver_name` | no | `matrix.example.com` | Display name of the homeserver |
+| `server_name` | no | `matrix.example.com` | Matrix server name (used for room directory) |
 | `brand` | no | `Matrix Chat` | Branding shown in the Element UI |
 | `allow_custom_homeservers` | no | `false` | Allow users to enter a custom homeserver at login |
 | `log_level` | no | `info` | `debug` / `info` / `warning` / `error` / `critical` |
@@ -108,7 +108,7 @@ brand: My Chat
                      ▼
 ┌──────────────────────────────────────────────────────┐
 │  Matrix Homeserver (Synapse)                         │
-│  https://matrix.dogzilla.cloud                       │
+│  https://matrix.example.com                       │
 │                                                      │
 │  Rooms · DMs · Threads · E2EE · Federation            │
 └──────────────────────────────────────────────────────┘
@@ -162,7 +162,7 @@ brand: My Chat
 <summary><b>Can't connect to homeserver</b></summary>
 
 - Verify the homeserver URL is correct in the add-on configuration
-- Test connectivity: `curl https://matrix.dogzilla.cloud/_matrix/client/versions`
+- Test connectivity: `curl https://matrix.example.com/_matrix/client/versions`
 - If using a custom homeserver, update `homeserver_url`, `homeserver_name`, and `server_name` in the add-on config
 - Check if the homeserver is behind a firewall that blocks requests from your HA instance
 

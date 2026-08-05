@@ -8,15 +8,15 @@ set -e
 OPTIONS_FILE="/data/options.json"
 
 if [ -f "$OPTIONS_FILE" ]; then
-    HOMESERVER_URL="$(jq -r '.homeserver_url // "https://matrix.dogzilla.cloud"' "$OPTIONS_FILE")"
-    HOMESERVER_NAME="$(jq -r '.homeserver_name // "matrix.dogzilla.cloud"' "$OPTIONS_FILE")"
-    SERVER_NAME="$(jq -r '.server_name // "matrix.dogzilla.cloud"' "$OPTIONS_FILE")"
+    HOMESERVER_URL="$(jq -r '.homeserver_url // "https://matrix.example.com"' "$OPTIONS_FILE")"
+    HOMESERVER_NAME="$(jq -r '.homeserver_name // "matrix.example.com"' "$OPTIONS_FILE")"
+    SERVER_NAME="$(jq -r '.server_name // "matrix.example.com"' "$OPTIONS_FILE")"
     BRAND="$(jq -r '.brand // "Matrix Chat"' "$OPTIONS_FILE")"
     LOG_LEVEL="$(jq -r '.log_level // "info"' "$OPTIONS_FILE")"
 else
-    HOMESERVER_URL="https://matrix.dogzilla.cloud"
-    HOMESERVER_NAME="matrix.dogzilla.cloud"
-    SERVER_NAME="matrix.dogzilla.cloud"
+    HOMESERVER_URL="https://matrix.example.com"
+    HOMESERVER_NAME="matrix.example.com"
+    SERVER_NAME="matrix.example.com"
     BRAND="Matrix Chat"
     LOG_LEVEL="info"
 fi

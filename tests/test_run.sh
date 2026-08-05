@@ -89,7 +89,7 @@ else
 fi
 
 # ── 9. Has fallback defaults (when /data/options.json doesn't exist) ──
-if grep -q 'matrix.dogzilla.cloud' "$RUN_SH"; then
+if grep -q 'matrix.example.com' "$RUN_SH"; then
     pass "Has fallback defaults for homeserver"
 else
     fail "run.sh missing fallback defaults for homeserver"

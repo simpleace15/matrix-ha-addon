@@ -14,9 +14,9 @@ panel_icon: "mdi:chat-outline"
 panel_title: Matrix Chat
 stage: "experimental"
 options:
-  homeserver_url: "https://matrix.dogzilla.cloud"
-  homeserver_name: "matrix.dogzilla.cloud"
-  server_name: "matrix.dogzilla.cloud"
+  homeserver_url: "https://matrix.example.com"
+  homeserver_name: "matrix.example.com"
+  server_name: "matrix.example.com"
   brand: "Matrix Chat"
   allow_custom_homeservers: false
   log_level: "info"
